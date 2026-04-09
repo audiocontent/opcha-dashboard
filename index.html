@@ -119,8 +119,13 @@ body.light .theme-btn.dark-btn{background:#555;color:#fff}
 <input type="text" id="requester" class="form-input" placeholder="依頼人名を入力（例：山田さん）">
 </div>
 <div class="form-group">
-<label>LINE名</label>
-<input type="text" id="lineName" class="form-input" placeholder="LINE名を入力（例：田中さん）">
+<label>LINE名（複数人入力可）</label>
+<div class="line-name-list" id="iraiLineList">
+<div class="line-name-row">
+<input type="text" class="form-input irai-line-input" placeholder="LINE名を入力">
+</div>
+</div>
+<button class="add-line-btn" onclick="addIraiLine()">＋ 追加</button>
 </div>
 <div class="form-group">
 <label>オプチャ名（複数選択可・再クリックで解除）</label>
@@ -142,6 +147,10 @@ body.light .theme-btn.dark-btn{background:#555;color:#fff}
 <div id="panel-kaijo" class="panel">
 <div class="panel-title red">🗑 管理者権限解除依頼（Chatwork通知）</div>
 <div class="panel-desc">LINE名とオプチャを選択して「解除依頼送信」を押すと、Chatworkに通知が送信されます。</div>
+<div class="form-group">
+<label>依頼人</label>
+<input type="text" id="kaijoRequester" class="form-input" placeholder="依頼人名を入力（例：山田さん）">
+</div>
 <div class="form-group">
 <label>LINE名（複数人入力可）</label>
 <div class="line-name-list" id="kaijoLineList">
@@ -274,6 +283,22 @@ var idx=selArr.indexOf(name);
 if(idx>-1){selArr.splice(idx,1);btn.classList.remove("selected")}
 else{selArr.push(name);btn.classList.add("selected")}
 }
+function addIraiLine(){
+var list=document.getElementById("iraiLineList");
+var row=document.createElement("div");
+row.className="line-name-row";
+var input=document.createElement("input");
+input.type="text";
+input.className="form-input irai-line-input";
+input.placeholder="LINE名を入力";
+var removeBtn=document.createElement("button");
+removeBtn.className="remove-line-btn";
+removeBtn.textContent="削除";
+removeBtn.onclick=function(){row.remove()};
+row.appendChild(input);
+row.appendChild(removeBtn);
+list.appendChild(row);
+}
 function addKaijoLine(){
 var list=document.getElementById("kaijoLineList");
 var row=document.createElement("div");
@@ -292,19 +317,21 @@ list.appendChild(row);
 }
 function submitRequest(){
 var requester=document.getElementById("requester").value.trim();
-var lineName=document.getElementById("lineName").value.trim();
+var inputs=document.querySelectorAll(".irai-line-input");
+var lineNames=[];
+inputs.forEach(function(inp){var v=inp.value.trim();if(v)lineNames.push(v)});
 var note=document.getElementById("iraiNote").value.trim();
 if(!requester){showToast("依頼人を入力してください","error");return}
-if(!lineName){showToast("LINE名を入力してください","error");return}
+if(lineNames.length===0){showToast("LINE名を入力してください","error");return}
 if(selectedOpcha.length===0){showToast("オプチャを選択してください","error");return}
 var btn=document.getElementById("submitBtn");
 btn.disabled=true;btn.textContent="送信中...";
-var msg="【権限付与依頼】\n依頼人："+requester+"\nLINE名："+lineName+"\nオプチャ：\n"+selectedOpcha.map(function(n){return "・"+n}).join("\n");
+var msg="【権限付与依頼】\n依頼人："+requester+"\nLINE名：\n"+lineNames.map(function(n){return "・"+n}).join("\n")+"\nオプチャ：\n"+selectedOpcha.map(function(n){return "・"+n}).join("\n");
 if(note){msg+="\n備考："+note}
 fetch(GAS_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({message:msg}),mode:"no-cors"})
 .then(function(){showToast("Chatworkに通知を送信しました！");
 document.getElementById("requester").value="";
-document.getElementById("lineName").value="";
+document.getElementById("iraiLineList").innerHTML='<div class="line-name-row"><input type="text" class="form-input irai-line-input" placeholder="LINE名を入力"></div>';
 document.getElementById("iraiNote").value="";
 selectedOpcha=[];
 document.querySelectorAll("#panel-irai .opcha-btn.selected").forEach(function(b){b.classList.remove("selected")});
@@ -313,16 +340,19 @@ document.querySelectorAll("#panel-irai .opcha-btn.selected").forEach(function(b)
 .finally(function(){btn.disabled=false;btn.innerHTML="\uD83D\uDCEE 依頼送信（＋Chatwork通知）"});
 }
 function submitKaijo(){
+var requester=document.getElementById("kaijoRequester").value.trim();
 var inputs=document.querySelectorAll(".kaijo-line-input");
 var lineNames=[];
 inputs.forEach(function(inp){var v=inp.value.trim();if(v)lineNames.push(v)});
+if(!requester){showToast("依頼人を入力してください","error");return}
 if(lineNames.length===0){showToast("LINE名を入力してください","error");return}
 if(selectedKaijoOpcha.length===0){showToast("オプチャを選択してください","error");return}
 var btn=document.getElementById("kaijoSubmitBtn");
 btn.disabled=true;btn.textContent="送信中...";
-var msg="【権限解除依頼】\nLINE名：\n"+lineNames.map(function(n){return "・"+n}).join("\n")+"\nオプチャ：\n"+selectedKaijoOpcha.map(function(n){return "・"+n}).join("\n");
+var msg="【権限解除依頼】\n依頼人："+requester+"\nLINE名：\n"+lineNames.map(function(n){return "・"+n}).join("\n")+"\nオプチャ：\n"+selectedKaijoOpcha.map(function(n){return "・"+n}).join("\n");
 fetch(GAS_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({message:msg}),mode:"no-cors"})
 .then(function(){showToast("Chatworkに解除依頼を送信しました！");
+document.getElementById("kaijoRequester").value="";
 document.getElementById("kaijoLineList").innerHTML='<div class="line-name-row"><input type="text" class="form-input kaijo-line-input" placeholder="LINE名を入力"></div>';
 selectedKaijoOpcha=[];
 document.querySelectorAll("#panel-kaijo .opcha-btn.selected").forEach(function(b){b.classList.remove("selected")});
