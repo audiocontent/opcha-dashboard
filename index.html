@@ -171,6 +171,10 @@ body.light .theme-btn.dark-btn{background:#555;color:#fff}
 <div class="opcha-buttons" id="kaijo-buppan-opcha-btns"></div>
 </div>
 </div>
+<div class="form-group">
+<label>備考</label>
+<textarea id="kaijoNote" class="form-textarea" placeholder="備考があれば入力してください"></textarea>
+</div>
 <button class="submit-btn red-btn" onclick="submitKaijo()" id="kaijoSubmitBtn">📮 解除依頼送信（＋Chatwork通知）</button>
 </div>
 </div>
@@ -228,7 +232,7 @@ function parseCSV(text){
 var rows=[],row=[],cell="",inQ=false;
 for(var i=0;i<text.length;i++){
 var c=text[i];
-if(inQ){if(c==='"'&&text[i+1]==='"'){cell+='"';i++}else if(c==='"'){inQ=false}else{cell+=c}}
+if(inQ){if(c==='"' && text[i+1]==='"'){cell+='"';i++}else if(c==='"'){inQ=false}else{cell+=c}}
 else{if(c==='"'){inQ=true}else if(c===","){row.push(cell.trim());cell=""}else if(c==="\n"){row.push(cell.trim());rows.push(row);row=[];cell=""}else if(c!=="\r"){cell+=c}}
 }
 if(cell||row.length){row.push(cell.trim());rows.push(row)}
@@ -344,16 +348,19 @@ var requester=document.getElementById("kaijoRequester").value.trim();
 var inputs=document.querySelectorAll(".kaijo-line-input");
 var lineNames=[];
 inputs.forEach(function(inp){var v=inp.value.trim();if(v)lineNames.push(v)});
+var note=document.getElementById("kaijoNote").value.trim();
 if(!requester){showToast("依頼人を入力してください","error");return}
 if(lineNames.length===0){showToast("LINE名を入力してください","error");return}
 if(selectedKaijoOpcha.length===0){showToast("オプチャを選択してください","error");return}
 var btn=document.getElementById("kaijoSubmitBtn");
 btn.disabled=true;btn.textContent="送信中...";
 var msg="【権限解除依頼】\n依頼人："+requester+"\nLINE名：\n"+lineNames.map(function(n){return "・"+n}).join("\n")+"\nオプチャ：\n"+selectedKaijoOpcha.map(function(n){return "・"+n}).join("\n");
+if(note){msg+="\n備考："+note}
 fetch(GAS_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({message:msg}),mode:"no-cors"})
 .then(function(){showToast("Chatworkに解除依頼を送信しました！");
 document.getElementById("kaijoRequester").value="";
 document.getElementById("kaijoLineList").innerHTML='<div class="line-name-row"><input type="text" class="form-input kaijo-line-input" placeholder="LINE名を入力"></div>';
+document.getElementById("kaijoNote").value="";
 selectedKaijoOpcha=[];
 document.querySelectorAll("#panel-kaijo .opcha-btn.selected").forEach(function(b){b.classList.remove("selected")});
 })
