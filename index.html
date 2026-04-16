@@ -264,7 +264,17 @@ bC.appendChild(bAddBtn);
 var kaijoAiC=document.getElementById("kaijo-ai-opcha-btns");
 var kaijoBc=document.getElementById("kaijo-buppan-opcha-btns");
 AI_OPCHA.forEach(function(name){createOpchaButton(name,kaijoAiC,selectedKaijoOpcha)});
+var kaijoAiAddBtn=document.createElement("button");
+kaijoAiAddBtn.className="add-opcha-btn";
+kaijoAiAddBtn.textContent="\uFF0B \u8FFD\u52A0";
+kaijoAiAddBtn.onclick=function(){addKaijoOpcha("ai")};
+kaijoAiC.appendChild(kaijoAiAddBtn);
 BUPPAN_OPCHA.forEach(function(name){createOpchaButton(name,kaijoBc,selectedKaijoOpcha)});
+var kaijoBAddBtn=document.createElement("button");
+kaijoBAddBtn.className="add-opcha-btn";
+kaijoBAddBtn.textContent="\uFF0B \u8FFD\u52A0";
+kaijoBAddBtn.onclick=function(){addKaijoOpcha("buppan")};
+kaijoBc.appendChild(kaijoBAddBtn);
 }
 function addOpcha(type){
 var name=prompt("追加するオプチャ名を入力してください：");
@@ -278,6 +288,22 @@ var newBtn=document.createElement("button");
 newBtn.className="opcha-btn";
 newBtn.textContent=trimmed;
 newBtn.onclick=function(){toggleOpcha(newBtn,trimmed,selectedOpcha)};
+container.insertBefore(newBtn,addBtn);
+if(type==="ai"){AI_OPCHA.push(trimmed)}else{BUPPAN_OPCHA.push(trimmed)}
+showToast("「"+trimmed+"」を追加しました");
+}
+function addKaijoOpcha(type){
+var name=prompt("追加するオプチャ名を入力してください：");
+if(!name||!name.trim())return;
+var trimmed=name.trim();
+var allNames=AI_OPCHA.concat(BUPPAN_OPCHA);
+if(allNames.indexOf(trimmed)!==-1){showToast("そのオプチャ名は既に存在します","error");return}
+var container=type==="ai"?document.getElementById("kaijo-ai-opcha-btns"):document.getElementById("kaijo-buppan-opcha-btns");
+var addBtn=container.querySelector(".add-opcha-btn");
+var newBtn=document.createElement("button");
+newBtn.className="opcha-btn";
+newBtn.textContent=trimmed;
+newBtn.onclick=function(){toggleOpcha(newBtn,trimmed,selectedKaijoOpcha)};
 container.insertBefore(newBtn,addBtn);
 if(type==="ai"){AI_OPCHA.push(trimmed)}else{BUPPAN_OPCHA.push(trimmed)}
 showToast("「"+trimmed+"」を追加しました");
