@@ -440,7 +440,7 @@ showToast("「"+trimmed+"」を追加しました");
 function toggleOpcha(btn,name,selArr){
 var idx=selArr.indexOf(name);
 if(idx>-1){selArr.splice(idx,1);btn.classList.remove("selected")}
-else{selArr.push(name);btn.classList.add("selected")}
+else{var isAi=AI_OPCHA.indexOf(name)>-1;var other=isAi?BUPPAN_OPCHA:AI_OPCHA;for(var i=selArr.length-1;i>=0;i--){if(other.indexOf(selArr[i])>-1)selArr.splice(i,1)}var wrap=btn.closest(".panel")||document;wrap.querySelectorAll(".opcha-btn.selected").forEach(function(b){if(other.indexOf(b.textContent)>-1)b.classList.remove("selected")});selArr.push(name);btn.classList.add("selected")}
 }
 function addIraiLine(){
 var list=document.getElementById("iraiLineList");
